@@ -1,5 +1,9 @@
 # Diverse Sampling (Jittor)
+
+<a href = "https://cg.cs.tsinghua.edu.cn/jittor/"><img src="./assets/JittorLogo_Final1220.svg" width="10%"></a>
+
 > Official [Jittor](https://github.com/Jittor/Jittor) reimplementation of ACMMM2022 accepted paper "[Diverse Human Motion Prediction via Gumbel-Softmax Sampling from an Auxiliary Space]()". 
+
 
 **Note that our offical [project](https://github.com/Droliven/diverse_sampling) based on [pytorch](https://github.com/pytorch/pytorch) is also available**.
 
@@ -33,27 +37,25 @@
 
 ```
 Nvidia RTX 3090
-Python                 3.9.7
+python                 3.8.0
+jittor                 1.3.4.17
+torch                  1.10.0+cpu
 matplotlib             3.5.0
-numpy                  1.20.3
-opencv-python          4.5.4.60
+numpy                  1.22.4
 pandas                 1.4.2
 PyYAML                 6.0
-tensorboard            2.7.0
-tensorboardX           2.4.1
-torch                  1.10.0+cu113
-torchvision            0.11.1+cu113
 scipy                  1.7.2
 scikit-learn           1.0.1
+tqdm                   4.64.0
 ```
 
 ## Get the data and pretrained models
 
-Pretrained models can be found via the [Diverse Sampling Resources Link for Jittor](), dataset can be found via the [Diverse Sampling Resources Link](https://drive.google.com/drive/folders/1MIKw4bbafLeW8HYWOv5CDR5G7gYi19WZ?usp=sharing), download them and then
+Pretrained models and dataset can be found via the [Diverse Sampling Resources Link](https://drive.google.com/drive/folders/1MIKw4bbafLeW8HYWOv5CDR5G7gYi19WZ?usp=sharing), download them and then
 
 + unzip `dataset.zip` to `./dataset`
-+ unzip `pretrained.zip` to `./ckpt/pretrained`
-+ unzip `classifier.zip` to `./ckpt/classifier`
++ unzip `pretrained_jittor.zip` to `./ckpt/pretrained_jittor`
++ unzip `classifier_jittor.zip` to `./ckpt/classifier_jittor`
 
 then the dictionary becomes:
 
@@ -74,11 +76,11 @@ diverse_sampling
 │          data_candi_t_his15_t_pred60_skiprate15.npz
 │          t_his15_1_thre0.500_t_pred60_thre0.010_index_filterd.npz
 └─ckpt
-   ├─classifier
+   ├─classifier_jittor
    │     .gitignore
    │      h36m_classifier.pth
    │      humaneva_classifier.pth
-   └─pretrained
+   └─pretrained_jittor
            .gitignore
            h36m_t1.pth
            h36m_t2.pth
@@ -108,9 +110,18 @@ diverse_sampling
   
   `python main_classifier.py --exp_name=humaneva_t2`
 
+## Results
+
+|  Dataset   |    Model        | APD `^`   | ADE`v` | FDE`v`  | MMADE`v`| MMFDE`v`| FID`v` | ACC `^`    | 
+|:----------:|:---------------:|:---------:|:------:|:-------:|:-------:|:-------:|:------:|:----------:|
+| Human3.6M  |      CVAE       |  5.7007   | 0.3777 | 0.4859  | 0.4672  | 0.5056  |   -    |     -      | 
+| Human3.6M  | DiverseSampling |  15.3568  | 0.3730 | 0.4878  | 0.4766  | 0.5177  | 2.0801 |   0.2606   | 
+| HumanEva-I |      CVAE       |  3.0766   | 0.2395 | 0.2461  | 0.3023  | 0.2849  |   -    |     -      | 
+| HumanEva-I | DiverseSampling |  6.0225   | 0.2267 | 0.2352  | 0.3419  | 0.3179  | 1.0289 |   0.6247   | 
+
+**`^` means the larger the better, while `v` means the smaller the better.**
 
 ## Train
-
 
 + train on Human3.6M:
   - train CVAE on Human3.6M:

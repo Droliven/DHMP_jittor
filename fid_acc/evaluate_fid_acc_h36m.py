@@ -58,13 +58,13 @@ class Evaluate_FID_ACC_H36m:
             p.requires_grad = False
         self.model_t1.eval()
 
-        classifier_path = os.path.join("./ckpt/classifier", "h36m_classifier.pth")
+        classifier_path = os.path.join("./ckpt/classifier_jittor", "h36m_classifier.pkl")
         classifier_state = jt.load(classifier_path)
         self.classifier_for_acc.load_state_dict(classifier_state["model"])
         self.classifier_for_fid.load_state_dict(classifier_state["model"])
         self.classifier_for_acc.eval()
         self.classifier_for_fid.eval()
-        print(f"classifier loaded from {classifier_path}")
+        print(f"classifier_jittor loaded from {classifier_path}")
 
         # 数据
         self.test_data = MaoweiGSPS_Dynamic_Seq_Classifier_H36m(data_path=self.cfg.base_data_dir,
@@ -149,7 +149,8 @@ class Evaluate_FID_ACC_H36m:
                 outputs = outputs.view(self.cfg.nk, -1, self.cfg.t_total)[:, :, self.cfg.t_his:]  # 50, 48, 100
 
                 probs = self.classifier_for_acc(motion_sequence=outputs)
-                batch_pred = probs.max(dim=1).indices.cpu().data.numpy() # 50
+                # batch_pred = probs.max(dim=1).indices.data # 50
+                batch_pred = np.argmax(probs.data, axis=1) # 50
                 if self.cfg.class_num == 15:
                     act_idx = action_idx_15
                 else:
@@ -161,8 +162,8 @@ class Evaluate_FID_ACC_H36m:
                     # print(label.data, pred.data)
                     confusion[label][pred] += 1
 
-                pred_activations = self.classifier_for_fid(motion_sequence=outputs).cpu().data.numpy()
-                gt_activations = self.classifier_for_fid(motion_sequence=datas[:, :, self.cfg.t_his:]).cpu().data.numpy()
+                pred_activations = self.classifier_for_fid(motion_sequence=outputs).data
+                gt_activations = self.classifier_for_fid(motion_sequence=datas[:, :, self.cfg.t_his:]).data
 
                 all_gt_activations.append(gt_activations)
                 all_pred_activations.append(pred_activations)

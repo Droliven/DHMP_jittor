@@ -33,17 +33,17 @@ from fid_acc import Evaluate_FID_ACC_H36m
 from fid_acc import Evaluate_FID_ACC_Humaneva
 
 parser = argparse.ArgumentParser(description='manual to this script')
-parser.add_argument('--exp_name', type=str, default="h36m_t2", help="h36m_t2 / humaneva_t2")
+parser.add_argument('--exp_name', type=str, default="humaneva_t2", help="h36m_t2 / humaneva_t2")
 
 args = parser.parse_args()
 
 if args.exp_name == "h36m_t2":
     r = Evaluate_FID_ACC_H36m()
-    r.restore(os.path.join("./ckpt/pretrained", "h36m_t2.pth"))
+    r.restore(os.path.join("./ckpt/pretrained_jittor", "h36m_t2.pkl"))
 
 elif args.exp_name == "humaneva_t2":
     r = Evaluate_FID_ACC_Humaneva()
-    r.restore(os.path.join("./ckpt/pretrained", "humaneva_t2.pth"))
+    r.restore(os.path.join("./ckpt/pretrained_jittor", "humaneva_t2.pkl"))
 
 else:
     print("wrong exp_name!")
@@ -51,4 +51,5 @@ else:
 
 fid, acc = r.compute_fid_and_acc()
 print("\n Test -->  fid {:.4f} -- acc {:.4f}".format(fid, acc))
+
 

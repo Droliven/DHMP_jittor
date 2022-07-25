@@ -94,4 +94,4 @@ class ConfigDiverseSampling():
         # >>> gsps
         self.similar_idx_path = os.path.join(self.base_data_dir, "data_multi_modal", "t_his25_1_thre0.500_t_pred100_thre0.100_filtered_dlow.npz")
         self.similar_pool_path = os.path.join(self.base_data_dir, "data_multi_modal", "data_candi_t_his25_t_pred100_skiprate20.npz")
-        self.model_path_t1 = os.path.join(r"./ckpt/pretrained", "h36m_t1.pth")
+        self.model_path_t1 = os.path.join(r"./ckpt/pretrained_jittor", "h36m_t1.pkl")

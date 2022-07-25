@@ -2,7 +2,7 @@
 # encoding: utf-8
 '''
 @project : m3day32022
-@file    : classifier.py
+@file    : classifier_jittor.py
 @author  : levon
 @contact : levondang@163.com
 @ide     : PyCharm
@@ -26,12 +26,12 @@ class ClassifierForAcc(Module):
         self.linear2 = Linear(30, output_size)
 
 
-    def forward(self, motion_sequence, hidden_unit=None):
+    def execute(self, motion_sequence, hidden_unit=None):
         '''
         motion_sequence: b, 48, 100
         hidden_unit:
         '''
-        motion_sequence = motion_sequence.permute(2, 0, 1).contiguous() # [100, b, 48]
+        motion_sequence = motion_sequence.permute(2, 0, 1) # [100, b, 48]
         # dim (motion_length, num_samples, hidden_size)
         if hidden_unit is None:
             hidden_unit = self.initHidden(motion_sequence.size(1), self.hidden_layer) # [2, b, 128]
@@ -61,12 +61,12 @@ class ClassifierForFID(Module):
         self.linear1 = Linear(hidden_size, 30)
         self.linear2 = Linear(30, output_size)
 
-    def forward(self, motion_sequence, hidden_unit=None):
+    def execute(self, motion_sequence, hidden_unit=None):
         '''
         motion_sequence: b, 48, 100
         hidden_unit:
         '''
-        motion_sequence = motion_sequence.permute(2, 0, 1).contiguous()  # [100, b, 48]
+        motion_sequence = motion_sequence.permute(2, 0, 1)  # [100, b, 48]
 
         # dim (motion_length, num_samples, hidden_size)
         if hidden_unit is None:

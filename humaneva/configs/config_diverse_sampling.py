@@ -95,6 +95,6 @@ class ConfigDiverseSampling():
         # >>> gsps
         self.similar_idx_path = os.path.join(self.base_data_dir, "humaneva_multi_modal", "t_his15_1_thre0.500_t_pred60_thre0.010_index_filterd.npz")
         self.similar_pool_path = os.path.join(self.base_data_dir, "humaneva_multi_modal", "data_candi_t_his15_t_pred60_skiprate15.npz")
-        self.model_path_t1 = os.path.join(r"./ckpt/pretrained/humaneva_t1.pth")
+        self.model_path_t1 = os.path.join(r"./ckpt/pretrained_jittor/humaneva_t1.pkl")
 
 

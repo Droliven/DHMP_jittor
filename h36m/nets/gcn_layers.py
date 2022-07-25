@@ -25,8 +25,8 @@ class GraphConv(Module):
         self.in_node_n = in_node_n
         self.out_node_n = out_node_n
 
-        self.weight = nn.Linear(in_len, out_len, bias=False)
-        self.att = nn.Linear(in_node_n, out_node_n, bias=False)
+        self.weight = jt.randn((in_len, out_len), requires_grad=True)
+        self.att = jt.randn((in_node_n, out_node_n), requires_grad=True)
 
         if bias:
             self.bias = jt.randn(out_len, requires_grad=True)
@@ -37,9 +37,9 @@ class GraphConv(Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        stdv = 1. / math.sqrt(self.weight.weight.size(1))
-        nn.init.uniform_(self.weight.weight, -stdv, stdv)
-        nn.init.uniform_(self.att.weight, -stdv, stdv)
+        stdv = 1. / math.sqrt(self.weight.shape[1])
+        nn.init.uniform_(self.weight, -stdv, stdv)
+        nn.init.uniform_(self.att, -stdv, stdv)
         if self.bias is not None:
             nn.init.uniform_(self.bias, -stdv, stdv)
 
@@ -48,8 +48,8 @@ class GraphConv(Module):
         b, cv, t
         '''
 
-        features = self.weight(input)  # 35 -> 256
-        output = self.att(features.permute(0, 2, 1)).permute(0, 2, 1)  # 66 -> 66
+        features = jt.matmul(input, self.weight)  # 35 -> 256
+        output = jt.matmul(features.permute(0, 2, 1), self.att).permute(0, 2, 1)  # 66 -> 66
         if self.bias is not None:
             output = output + self.bias
         return output
@@ -117,3 +117,9 @@ class ResGCB(Module):
             return x + input
         else:
             return x
+
+if __name__ == '__main__':
+    m = GraphConv(in_len=35, out_len=256, in_node_n=66, out_node_n=66, bias=True)
+    x = jt.randn((4, 66, 35))
+    y = m(x)
+    pass

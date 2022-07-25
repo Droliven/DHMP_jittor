@@ -64,7 +64,7 @@ class Evaluate_FID_ACC_Humaneva():
             p.requires_grad = False
         self.model_t1.eval()
 
-        classifier_path = os.path.join("./ckpt/classifier", "humaneva_classifier.pth")
+        classifier_path = os.path.join("./ckpt/classifier_jittor", "humaneva_classifier.pkl")
 
         classifier_state = jt.load(classifier_path)
         self.classifier_for_acc.load_state_dict(classifier_state["model"])
@@ -72,7 +72,7 @@ class Evaluate_FID_ACC_Humaneva():
         self.classifier_for_acc.eval()
         self.classifier_for_fid.eval()
         print(
-            f"classifier loaded from {classifier_path}")
+            f"classifier_jittor loaded from {classifier_path}")
 
 
         # 数据
@@ -107,7 +107,7 @@ class Evaluate_FID_ACC_Humaneva():
         # b*h, 1, 10
         assert temperature > 0, "temperature must be greater than 0 !"
 
-        U = jt.rand(logits.shape, device=logits.device)
+        U = jt.rand(logits.shape)
         g = -jt.log(-jt.log(U + eps) + eps)
 
         y = logits + g
@@ -158,16 +158,18 @@ class Evaluate_FID_ACC_Humaneva():
                 outputs = outputs.view(self.cfg.nk, -1, self.cfg.t_total)[:, :, self.cfg.t_his:]  # 50, 48, 100
 
                 probs = self.classifier_for_acc(motion_sequence=outputs)
-                batch_pred = probs.max(dim=1).indices.cpu().data.numpy()
+                # batch_pred = probs.max(dim=1).indices.data
+                batch_pred = np.argmax(probs.data, axis=1) # 50
+
                 action_idx_5 = action_idx_5.reshape(-1).repeat(self.cfg.nk)
 
                 for label, pred in zip(action_idx_5, batch_pred):
                     # print(label.data, pred.data)
                     confusion[label][pred] += 1
 
-                pred_activations = self.classifier_for_fid(motion_sequence=outputs).cpu().data.numpy()
+                pred_activations = self.classifier_for_fid(motion_sequence=outputs).data
                 gt_activations = self.classifier_for_fid(
-                    motion_sequence=datas[:, :, self.cfg.t_his:]).cpu().data.numpy()
+                    motion_sequence=datas[:, :, self.cfg.t_his:]).data
 
                 all_gt_activations.append(gt_activations)
                 all_pred_activations.append(pred_activations)

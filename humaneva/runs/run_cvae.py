@@ -9,11 +9,11 @@
 @time    : 2021-12-03 16:18
 '''
 
-from ..datas import MaoweiGSPS_Dynamic_Seq_H36m, MaoweiGSPS_Dynamic_Seq_H36m_ExtandDataset_T1, draw_multi_seqs_2d, get_dct_matrix, dct_transform_cuda, reverse_dct_cuda
+from ..datas import MaoweiGSPS_Dynamic_Seq_Humaneva, MaoweiGSPS_Dynamic_Seq_Humaneva_ExpandDataset_T1, draw_multi_seqs_2d, get_dct_matrix, dct_transform_cuda, reverse_dct_cuda
 from ..nets import CVAE
 from ..configs import ConfigCVAE
 from .losses import loss_recover_history_t1, loss_recons, loss_kl_normal,loss_limb_length_t1, loss_valid_angle_t1, compute_diversity, compute_ade, compute_fde, compute_mmade, compute_mmfde, \
-    compute_diversity_between_twopart
+    compute_bone_percent_error, compute_angle_error, compute_diversity_between_twopart
 
 from jittor.optim import Adam
 from .lambda_lr import LambdaLR
@@ -29,9 +29,8 @@ import json
 import matplotlib.pyplot as plt
 import pickle
 
-
 class RunCVAE():
-    def __init__(self, exp_name="h36m_t1", is_debug=False, args=None):
+    def __init__(self, exp_name="base_cvaegcndct", device="cuda:0", num_works=0, is_debug=False, args=None):
         super(RunCVAE, self).__init__()
 
         self.is_debug = is_debug
@@ -70,35 +69,37 @@ class RunCVAE():
 
         self.scheduler = LambdaLR(self.optimizer, origin_lr=self.cfg.lr_t1, epoch_fix_t1=self.cfg.epoch_fix_t1, epoch_t1=self.cfg.epoch_t1)
 
-        # # 数据
-        self.train_data = MaoweiGSPS_Dynamic_Seq_H36m_ExtandDataset_T1(data_path=self.cfg.base_data_dir,
-                                                      similar_idx_path=self.cfg.similar_idx_path,
-                                                      similar_pool_path=self.cfg.similar_pool_path,
-                                                      t_his=self.cfg.t_his,
-                                                      t_pred=self.cfg.t_pred,
-                                                      dynamic_sub_len=self.cfg.sub_len_train,
-                                                      batch_size=self.cfg.train_batch_size,
-                                                      joint_used_17=self.cfg.joint_used, subjects=self.cfg.subjects,
-                                                      parents_17=self.cfg.parents,
-                                                      mode="train", multimodal_threshold=self.cfg.multimodal_threshold,
-                                                      is_debug=self.is_debug)
+        # 数据
 
-        self.test_data = MaoweiGSPS_Dynamic_Seq_H36m(data_path=self.cfg.base_data_dir,
-                                                     similar_idx_path=self.cfg.similar_idx_path,
-                                                     similar_pool_path=self.cfg.similar_pool_path, t_his=self.cfg.t_his,
-                                                     t_pred=self.cfg.t_pred, similar_cnt=0,
-                                                     batch_size=self.cfg.test_batch_size,
-                                                     joint_used_17=self.cfg.joint_used, subjects=self.cfg.subjects,
-                                                     parents_17=self.cfg.parents,
-                                                     mode="test", multimodal_threshold=self.cfg.multimodal_threshold,
-                                                     is_debug=self.is_debug)
+        self.train_data = MaoweiGSPS_Dynamic_Seq_Humaneva_ExpandDataset_T1(data_path=self.cfg.base_data_dir,
+                                                          similar_idx_path=self.cfg.similar_idx_path,
+                                                          similar_pool_path=self.cfg.similar_pool_path,
+                                                          t_his=self.cfg.t_his,
+                                                          t_pred=self.cfg.t_pred,
+                                                          dynamic_sub_len=self.cfg.sub_len_train,
+                                                          batch_size=self.cfg.train_batch_size,
+                                                          joint_used_17=self.cfg.joint_used, subjects=self.cfg.subjects,
+                                                          parents_17=self.cfg.parents,
+                                                          mode="train",
+                                                          multimodal_threshold=self.cfg.multimodal_threshold,
+                                                          is_debug=self.is_debug)
 
+        self.test_data = MaoweiGSPS_Dynamic_Seq_Humaneva(data_path=self.cfg.base_data_dir,
+                                                similar_idx_path=self.cfg.similar_idx_path,
+                                                similar_pool_path=self.cfg.similar_pool_path, t_his=self.cfg.t_his,
+                                                t_pred=self.cfg.t_pred, similar_cnt=0,
+                                                batch_size=self.cfg.test_batch_size,
+                                                joint_used_17=self.cfg.joint_used, subjects=self.cfg.subjects,
+                                                parents_17=self.cfg.parents,
+                                                mode="test", multimodal_threshold=self.cfg.multimodal_threshold,
+                                                is_debug=self.is_debug)
         self.test_data.get_test_similat_gt_like_dlow()
 
         self.valid_angle = pickle.load(open(self.cfg.valid_angle_path, "rb"))  # dict 13
         print(f"{'valid angle'} loaded from {self.cfg.valid_angle_path} !")
 
         # self.summary = SummaryWriter(self.cfg.ckpt_dir)
+
 
 
     def save(self, checkpoint_path, epoch, curr_err):
@@ -111,7 +112,6 @@ class RunCVAE():
         }
         jt.save(state, checkpoint_path)
         print("saved to {}".format(checkpoint_path))
-
 
     def restore(self, checkpoint_path):
         state = jt.load(checkpoint_path)
@@ -166,7 +166,7 @@ class RunCVAE():
 
             recoverhis = loss_recover_history_t1(pred=outputs[:, :, :self.cfg.t_his], gt=datas[:, :, :self.cfg.t_his]) # 这里用 25 帧
             limblen_err = loss_limb_length_t1(outputs, datas, parent_17=self.cfg.parents)  # 这里用 125帧
-            angle_err = loss_valid_angle_t1(outputs[:, :, self.cfg.t_his:], self.valid_angle, data="h36m")
+            angle_err = loss_valid_angle_t1(outputs[:, :, self.cfg.t_his:], self.valid_angle, data="humaneva")
 
             all_loss = recons_error * self.cfg.t1_recons_weight \
                        + vec * self.cfg.t1_vec_weight \
@@ -196,12 +196,12 @@ class RunCVAE():
                     bidx = 0
                     origin = datas[bidx:bidx + 1].data  # 1, 48, 125
                     origin = origin.reshape(1, -1, 3, self.cfg.t_total)  # 1, 16, 3, 125
-                    origin = np.concatenate((np.expand_dims(np.mean(origin[:, [0, 3], :, :], axis=1), axis=1), origin),
+                    origin = np.concatenate((np.expand_dims(np.mean(origin[:, [7, 10], :, :], axis=1), axis=1), origin),
                                             axis=1)  # # 1, 17, 3, 125
                     origin *= 1000
 
                     output = outputs[bidx:bidx + 1].reshape(1, -1, 3, self.cfg.t_total).data  # 1, 16, 3, 125
-                    output = np.concatenate((np.expand_dims(np.mean(output[:, [0, 3], :, :], axis=1), axis=1), output),
+                    output = np.concatenate((np.expand_dims(np.mean(output[:, [7, 10], :, :], axis=1), axis=1), output),
                                             axis=1)  # # 1, 17, 3, 100
                     output *= 1000
 
@@ -231,7 +231,6 @@ class RunCVAE():
         # self.summary.add_scalar(f"loss/averagelimblen", average_limblen, epoch)
         # self.summary.add_scalar(f"loss/averageangle", average_angle, epoch)
         return average_all_loss, average_recons_error, average_kl, average_vec, average_his, average_limblen, average_angle
-
 
     def eval(self, epoch=-1, draw=False):
         self.model.eval()
@@ -270,7 +269,7 @@ class RunCVAE():
                 out_dct = out_dct.reshape([b*self.cfg.nk, self.cfg.node_n * 3, -1])  # b*50, 48, 10
                 outputs = reverse_dct_cuda(out_dct, self.i_dct_m, self.cfg.t_total)[:, :, self.cfg.t_his:]  # 50, 48, 100
 
-                cdiv = compute_diversity(pred=outputs).mean()
+                cdiv = compute_diversity(outputs).mean()  # [10, 48, 100], [1, 48, 100]
                 # cdiv = []
                 # for oidx in range(self.cfg.nk // self.cfg.seperate_head):
                 #     cdiv.append(compute_diversity(
@@ -287,7 +286,6 @@ class RunCVAE():
                 cfde = compute_fde(outputs, datas[:, :, self.cfg.t_his:])
                 cmmade = compute_mmade(outputs, datas[:, :, self.cfg.t_his:], similars)
                 cmmfde = compute_mmfde(outputs, datas[:, :, self.cfg.t_his:], similars)
-
 
             diversity += cdiv
             ade += cade
@@ -310,14 +308,14 @@ class RunCVAE():
                     origin = datas[bidx:bidx + 1].reshape(1, -1, 3,
                                                           self.cfg.t_total).data  # 1, 16, 3, 125
                     origin = np.concatenate(
-                        (np.expand_dims(np.mean(origin[:, [0, 3], :, :], axis=1), axis=1), origin),
+                        (np.expand_dims(np.mean(origin[:, [7, 10], :, :], axis=1), axis=1), origin),
                         axis=1)  # # 1, 17, 3, 125
                     origin *= 1000
 
                     all_outputs = outputs.data.reshape(self.cfg.nk, -1, 3,
                                                                      self.cfg.t_pred)  # 10, 16, 3, 100
                     all_outputs = np.concatenate(
-                        (np.expand_dims(np.mean(all_outputs[:, [0, 3], :, :], axis=1), axis=1), all_outputs),
+                        (np.expand_dims(np.mean(all_outputs[:, [7, 10], :, :], axis=1), axis=1), all_outputs),
                         axis=1)  # 10, 17, 3, 100
                     all_outputs *= 1000
                     all_outputs = np.concatenate((np.repeat(origin[:, :, :, :self.cfg.t_his],
@@ -339,7 +337,6 @@ class RunCVAE():
         fde /= (i + 1)
         mmade /= (i + 1)
         mmfde /= (i + 1)
-
         # self.summary.add_scalar(f"Test/div", diversity, epoch)
         # self.summary.add_scalar(f"Test/ade", ade, epoch)
         # self.summary.add_scalar(f"Test/fde", fde, epoch)
@@ -351,7 +348,7 @@ class RunCVAE():
 
     def run(self):
         for epoch in range(self.start_epoch, self.cfg.epoch_t1 + 1):
-            # self.summary.add_scalar("LR", self.scheduler.get_lr(), epoch)
+            # self.summary.add_scalar("LR", self.scheduler.get_last_lr()[0], epoch)
 
             average_all_loss, average_recons_error, average_kl, average_vec, average_his, average_limblen, average_angle = self.train(epoch, draw=False)
             self.scheduler.step()
@@ -365,7 +362,7 @@ class RunCVAE():
                 test_interval = 20
             if epoch % test_interval == 0:
                 diversity, ade, fde, mmade, mmfde = self.eval(epoch=epoch, draw=True if epoch % 50 == 0 else False)
-                print("Test --> epo {}: div {:.4f} | ade {:.4f} |  fde {:.4f} |  mmade {:.4f} |  mmfde {:.4f} ".format(
+                print("Test > epo {}: div {:.4f} | ade {:.4f} |  fde {:.4f} |  mmade {:.4f} |  mmfde {:.4f} ".format(
                     epoch,
                     diversity,
                     ade,
