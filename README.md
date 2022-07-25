@@ -1,6 +1,6 @@
 # Diverse Sampling (Jittor)
 
-<a href = "https://cg.cs.tsinghua.edu.cn/jittor/"><img src="./assets/JittorLogo_Final1220.svg" width="10%"></a>
+<a href = "https://cg.cs.tsinghua.edu.cn/jittor/"><img src="./assets/JittorLogo_Final1220.svg" width="30%"></a>
 
 > Official [Jittor](https://github.com/Jittor/Jittor) reimplementation of ACMMM2022 accepted paper "[Diverse Human Motion Prediction via Gumbel-Softmax Sampling from an Auxiliary Space]()". 
 

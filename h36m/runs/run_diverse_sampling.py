@@ -214,10 +214,10 @@ class RunDiverseSampling():
             # self.optimizer.clip_grad_norm(max_norm=100)
             self.optimizer.step()
 
-            average_allloss += all_loss.data
-            average_kls_p1 += kls_p1.data
-            average_adeerrors += adeerrors.data
-            average_hinges += all_hinges.data
+            average_allloss += all_loss.data[0]
+            average_kls_p1 += kls_p1.data[0]
+            average_adeerrors += adeerrors.data[0]
+            average_hinges += all_hinges.data[0]
 
             # 画图
             if draw:

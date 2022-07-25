@@ -178,7 +178,7 @@ def loss_valid_angle_t1(pred, valid_ang, data="humaneva"):
 
     ang_names = list(valid_ang.keys())
 
-    pred = pred.permute(0, 2, 1).contiguous().view(-1, vc)
+    pred = pred.permute(0, 2, 1).view(-1, vc)
     if data == "humaneva":
         ang_cos = humaneva_valid_angle_check_cuda(pred)
 
@@ -205,7 +205,7 @@ def loss_valid_angle_t2(pred, valid_ang, data="humaneva"):
 
     ang_names = list(valid_ang.keys())
 
-    pred = pred.permute(0, 1, 3, 2).contiguous().view(-1, vc)
+    pred = pred.permute(0, 1, 3, 2).view(-1, vc)
     if data == "humaneva":
         ang_cos = humaneva_valid_angle_check_cuda(pred)
 
@@ -388,7 +388,7 @@ def compute_angle_error(pred, valid_ang, data="humaneva"):
 
     ang_names = list(valid_ang.keys())
 
-    pred = pred.permute(0, 2, 1).contiguous().view(-1, vc)  # n*100, 48
+    pred = pred.permute(0, 2, 1).view(-1, vc)  # n*100, 48
     if data == "humaneva":
         ang_cos = humaneva_valid_angle_check_cuda(pred)
 
