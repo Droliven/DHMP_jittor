@@ -112,7 +112,7 @@ diverse_sampling
 
 ## Results
 
-|  Dataset   |    Model        | APD `^`   | ADE`v` | FDE`v`  | MMADE`v`| MMFDE`v`| FID`v` | ACC `^`    | 
+|  Dataset   |    Model        | APD`^`   | ADE`v` | FDE`v`  | MMADE`v`| MMFDE`v`| FID`v` | ACC`^`    | 
 |:----------:|:---------------:|:---------:|:------:|:-------:|:-------:|:-------:|:------:|:----------:|
 | Human3.6M  |      CVAE       |  5.7007   | 0.3777 | 0.4859  | 0.4672  | 0.5056  |   -    |     -      | 
 | Human3.6M  | DiverseSampling |  15.3568  | 0.3730 | 0.4878  | 0.4766  | 0.5177  | 2.0801 |   0.2606   | 
