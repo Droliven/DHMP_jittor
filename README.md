@@ -8,7 +8,6 @@
 **Note that our offical [project](https://github.com/Droliven/diverse_sampling) based on [pytorch](https://github.com/pytorch/pytorch) is also available**.
 
 [\[Paper & Supp\]](https://arxiv.org/abs/2207.07351)
-[\[Poster\]]()
 [\[Slides\]]()
 [\[Video\]]()
 
