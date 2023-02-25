@@ -1,5 +1,10 @@
 # Diverse Sampling (Jittor)
 
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/diverse-human-motion-prediction-via-gumbel/human-pose-forecasting-on-human36m)](https://paperswithcode.com/sota/human-pose-forecasting-on-human36m?p=diverse-human-motion-prediction-via-gumbel)
+
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/diverse-human-motion-prediction-via-gumbel/human-pose-forecasting-on-humaneva-i)](https://paperswithcode.com/sota/human-pose-forecasting-on-humaneva-i?p=diverse-human-motion-prediction-via-gumbel)
+
+
 <a href = "https://cg.cs.tsinghua.edu.cn/jittor/"><img src="./assets/JittorLogo_Final1220.svg" width="30%"></a>
 
 > Official [Jittor](https://github.com/Jittor/Jittor) reimplementation of ACMMM2022 accepted paper "[Diverse Human Motion Prediction via Gumbel-Softmax Sampling from an Auxiliary Space]()". 
